@@ -220,7 +220,6 @@ p <- c("tau" = 2.2, "N0" = 1000, "a" = 0.25, "f0" = 8)
 N <- do.call("f", c(list(T = T), as.list(p)))
 N <- rnorm(length(N), mean=N, sd=sqrt(N))
 
-x11()
 plot(T, N, bg = "black", pch = 21, cex = 0.5)
 
 fcn     <- function(p, T, N, N.Err, fcall, jcall)

@@ -3,9 +3,9 @@
 char *fcn_message(char *msg, int info, int n)
 {
     if      (info == 1)
-        sprintf(msg, "Both actual and predicted relative reductions in the sum of squares are at most `ftol'.");
+        sprintf(msg, "Relative error in the sum of squares is at most `ftol'.");
     else if (info == 2)
-        sprintf(msg, "Relative error between two consective iterates is at most `tol'.");
+        sprintf(msg, "Relative error between `par' and the solution is at most `ptol'.");
     else if (info == 3)
         sprintf(msg, "Conditions for `info = 1' and `info = 2' both hold.");
     else if (info == 4)
@@ -15,11 +15,13 @@ char *fcn_message(char *msg, int info, int n)
     else if (info == 6)
         sprintf(msg, "`ftol' is too small. No further reduction in the sum of squares is possible.");
     else if (info == 7)
-        sprintf(msg, "`ptol' is too small. No further improvement in the approximate solution `x' is possible.");
+        sprintf(msg, "`ptol' is too small. No further improvement in the approximate solution `par' is possible.");
     else if (info == 8)
         sprintf(msg, "`gtol' is too small. `fvec' is orthogonal to the columns of the Jacobian to machine precision.");
-    else
+    else if (info == 0)
         sprintf(msg, "Improper input parameters.");
+    else
+        sprintf(msg, "Hmm, that `info' value (`info' == %d) should *NEVER* be returned! Please report bug to <Timur.Elzhov@jinr.ru>.", info);
 
     return msg;
 }

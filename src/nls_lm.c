@@ -1,37 +1,10 @@
 #include <R.h>
 #include <Rdefines.h>
+#include "minpack_lm.h"
 
-typedef struct opt_struct {
-    SEXP par;
-    SEXP fcall;
-    SEXP jcall;
-    SEXP env;
-    double ftol;
-    double xtol;
-    double gtol;
-    double epsfcn;
-    double *diag;
-    double factor;
-} opt_struct, *OptStruct;
-
-extern void F77_NAME(lmdif)();
-extern void F77_NAME(lmder)();
-extern void fcn_lmdif(int *m, int *n, double *par, double *fvec,
-                      int *iflag);
-extern void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldfjac,
-                      int *iflag);
-extern char *fcn_message(char*, int, int);
-
-extern void transpose(double*, int, int, double*);
-extern void matprod  (double*, int, int, double*, int, int, double*);
-extern void crossprod(double*, int, int, double*, int, int, double*);
-extern SEXP getListElement(SEXP, char*);
-extern double *real_vector(int);
-extern int  *int_vector(int);
 
 int niter;
 OptStruct OS;
-
 
 SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
 {
@@ -47,7 +20,7 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     SEXP    sexp_diag, sexp_hess, sexp_fvec, sexp_info, sexp_message;
     SEXP    out, out_names;
 
-    char    message[256];
+    char    lmfun_name[8], message[256];
 
     int     maxfev, nprint;
     int     mode;
@@ -82,7 +55,7 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     m = length(eval_test);
     UNPROTECT(1);
 
-    ldfjac = (m > n) ? m : n;
+    ldfjac = m;
 
     par         = real_vector(n);
     fvec        = real_vector(m);
@@ -101,7 +74,7 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     hess        = real_vector(n * n);
 
     OS->ftol    = NUMERIC_VALUE(getListElement(control, "ftol"));
-    OS->xtol    = NUMERIC_VALUE(getListElement(control, "ptol"));
+    OS->ptol    = NUMERIC_VALUE(getListElement(control, "ptol"));
     OS->gtol    = NUMERIC_VALUE(getListElement(control, "gtol"));
     OS->epsfcn  = NUMERIC_VALUE(getListElement(control, "epsfcn"));
     OS->factor  = NUMERIC_VALUE(getListElement(control, "factor"));
@@ -158,10 +131,11 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
 
     if (isNull(jac)) {
         F77_CALL(lmdif)(&fcn_lmdif, &m, &n, par, fvec,
-                        &OS->ftol, &OS->xtol, &OS->gtol,
+                        &OS->ftol, &OS->ptol, &OS->gtol,
                         &maxfev, &OS->epsfcn, OS->diag, &mode,
                         &OS->factor, &nprint, &info, &nfev, fjac, &ldfjac,
                          ipvt, qtf, wa1, wa2, wa3, wa4);
+        strcpy(lmfun_name, "lmdif");
     }
     else {
         if (!isFunction(jac))
@@ -178,11 +152,12 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
         UNPROTECT(1);
         F77_CALL(lmder)(&fcn_lmder, &m, &n, par, fvec,
                          fjac, &ldfjac,
-                        &OS->ftol, &OS->xtol, &OS->gtol,
+                        &OS->ftol, &OS->ptol, &OS->gtol,
                         &maxfev, OS->diag, &mode,
                         &OS->factor, &nprint, &info, &nfev, &njev,
                          ipvt, qtf, wa1, wa2, wa3, wa4);
         UNPROTECT(1);
+        strcpy(lmfun_name, "lmder");
     }
 
 /*========================================================================*/
@@ -190,7 +165,7 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     fcn_message(message, info, maxfev);
 
     if (info < 1 || 8 < info)
-        error("nls-lm: info = %d. %s\n\n", info, message);
+        error("%s: info = %d. %s\n\n", lmfun_name, info, message);
 
     PROTECT(sexp_hess = NEW_NUMERIC(n*n));
     for (j = 0; j < n; j++)

@@ -1,29 +1,15 @@
 #include <R.h>
 #include <Rdefines.h>
+#include "minpack_lm.h"
 
-typedef struct opt_struct {
-    SEXP par;
-    SEXP fcall;
-    SEXP jcall;
-    SEXP env;
-    double ftol;
-    double xtol;
-    double gtol;
-    double epsfcn;
-    double *diag;
-    double factor;
-} opt_struct, *OptStruct;
 
-extern int niter;
-extern OptStruct OS;
-
-void fcn_lmdif(int *m, int *n, double *par, double *fvec,
+void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldfjac,
                int *iflag)
 {
-    int i;
-    SEXP sexp_fvec;
+    int i, j;
+    SEXP sexp_fvec, sexp_fjac;
 
-/*    Rprintf("fcn-lmdif calling...\n");   */
+    /* Rprintf("fcn-lmder calling...\n"); */
     if (IS_NUMERIC(OS->par))
         for (i = 0; i < *n; i++) {
             if (!R_FINITE(par[i]))
@@ -43,7 +29,7 @@ void fcn_lmdif(int *m, int *n, double *par, double *fvec,
             Rprintf(" % 10g", par[i]);
         Rprintf("\n");
     }
-    else if (*iflag == 1 || *iflag == 2) {
+    else if (*iflag == 1) {
         SETCADR(OS->fcall, OS->par);
         PROTECT(sexp_fvec = eval(OS->fcall, OS->env));
 
@@ -52,6 +38,16 @@ void fcn_lmdif(int *m, int *n, double *par, double *fvec,
 
         UNPROTECT(1);
 
-        if (*iflag == 1) niter++;
+        niter++;
+    }
+    else if (*iflag == 2) {
+        SETCADR(OS->jcall, OS->par);
+        PROTECT(sexp_fjac = eval(OS->jcall, OS->env));
+
+        for (j = 0; j < *n; j++)
+            for (i = 0; i < *m; i++)
+                fjac[(*ldfjac)*j + i] = NUMERIC_POINTER(sexp_fjac)[(*m)*j + i];
+
+        UNPROTECT(1);
     }
 }
