@@ -65,4 +65,3 @@ void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldf
         UNPROTECT(1);
     }
 }
-

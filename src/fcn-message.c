@@ -1,5 +1,4 @@
 #include <R.h>
-#include <Rdefines.h>
 
 char *fcn_message(char *msg, int info, int n)
 {

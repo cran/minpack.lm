@@ -1,7 +1,6 @@
 #include <R.h>
 #include <Rdefines.h>
 
-
 typedef struct opt_struct {
     SEXP par;
     SEXP fcall;
@@ -23,32 +22,26 @@ extern void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, i
                       int *iflag);
 extern char *fcn_message(char*, int, int);
 
+extern void transpose(double*, int, int, double*);
+extern void matprod  (double*, int, int, double*, int, int, double*);
+extern void crossprod(double*, int, int, double*, int, int, double*);
+extern SEXP getListElement(SEXP, char*);
+extern double *real_vector(int);
+extern int  *int_vector(int);
+
 int niter;
 OptStruct OS;
 
 
-static SEXP getListElement(SEXP list, char *str)
-{
-    SEXP elmt = NULL_USER_OBJECT, names = GET_NAMES(list);
-    int i;
-
-    for (i = 0; i < length(list); i++)
-        if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
-            elmt = VECTOR_ELT(list, i);
-            break;
-        }
-    return elmt;
-}
-
 SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
 {
-    int     i, j, k;
+    int     i, j;
     int     n, m, ldfjac;
     int     info, nfev, njev;
 
     double  *par, *fvec, *fjac, *qtf, *wa1, *wa2, *wa3, *wa4,
-              *r, *r2, *r2_x_perm, *hess;
-    int     *ipvt, *perm;
+              *perm, *perm_t, *r, *r2, *r2_x_perm_t, *hess;
+    int     *ipvt;
 
     SEXP    eval_test;
     SEXP    sexp_diag, sexp_hess, sexp_fvec, sexp_info, sexp_message;
@@ -91,27 +84,28 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
 
     ldfjac = (m > n) ? m : n;
 
-    par       = (double *) R_alloc(n,          sizeof(double));
-    fvec      = (double *) R_alloc(m,          sizeof(double));
-    fjac      = (double *) R_alloc(ldfjac * n, sizeof(double));
-    qtf       = (double *) R_alloc(n,          sizeof(double));
-    wa1       = (double *) R_alloc(n,          sizeof(double));
-    wa2       = (double *) R_alloc(n,          sizeof(double));
-    wa3       = (double *) R_alloc(n,          sizeof(double));
-    wa4       = (double *) R_alloc(m,          sizeof(double));
-    ipvt      = (int    *) R_alloc(n,          sizeof(int   ));
-    perm      = (int    *) R_alloc(n * n,      sizeof(int   ));
-    r         = (double *) R_alloc(n * n,      sizeof(double));
-    r2        = (double *) R_alloc(n * n,      sizeof(double));
-    r2_x_perm = (double *) R_alloc(n * n,      sizeof(double));
-    hess      = (double *) R_alloc(n * n,      sizeof(double));
+    par         = real_vector(n);
+    fvec        = real_vector(m);
+    fjac        = real_vector(ldfjac * n);
+    qtf         = real_vector(n);
+    wa1         = real_vector(n);
+    wa2         = real_vector(n);
+    wa3         = real_vector(n);
+    wa4         = real_vector(m);
+    ipvt        =  int_vector(n);
+    perm        = real_vector(n * n);
+    perm_t      = real_vector(n * n);
+    r           = real_vector(n * n);
+    r2          = real_vector(n * n);
+    r2_x_perm_t = real_vector(n * n);
+    hess        = real_vector(n * n);
 
-    OS->ftol   = NUMERIC_VALUE(getListElement(control, "ftol"));
-    OS->xtol   = NUMERIC_VALUE(getListElement(control, "ptol"));
-    OS->gtol   = NUMERIC_VALUE(getListElement(control, "gtol"));
-    OS->epsfcn = NUMERIC_VALUE(getListElement(control, "epsfcn"));
-    OS->factor = NUMERIC_VALUE(getListElement(control, "factor"));
-    OS->diag   = (double*) R_alloc(n, sizeof(double));
+    OS->ftol    = NUMERIC_VALUE(getListElement(control, "ftol"));
+    OS->xtol    = NUMERIC_VALUE(getListElement(control, "ptol"));
+    OS->gtol    = NUMERIC_VALUE(getListElement(control, "gtol"));
+    OS->epsfcn  = NUMERIC_VALUE(getListElement(control, "epsfcn"));
+    OS->factor  = NUMERIC_VALUE(getListElement(control, "factor"));
+    OS->diag    = real_vector(n);
 
     PROTECT_WITH_INDEX(sexp_diag = getListElement(control, "diag"), &ipx);
     switch (TYPEOF(sexp_diag)) {
@@ -205,28 +199,16 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
             r   [j*n + i] = (i <= j) ? fjac[j*ldfjac + i] : 0;
         }
 
-    for (i = 0; i < n*n; i++) 
-        r2[i] = r2_x_perm[i] = hess[i] = 0;
+    /*  perm %*% t(r) %*% r %*% t(perm)  *
+     *    |       |___r2__|         |    *
+     *    |           |_r2_x_perm_t_|    *
+     *    |_______hess_______|           */
 
-   /*  sexp_hess = sexp_perm %*% T(sexp_r) %*% sexp_r %*% T(sexp_perm)  *
-    *              |             |________ r2_______|                |  *
-    *              |             |_________r2_x_perm_________________|  *
-    *              |_______________________hess______________________|  */
+    transpose(perm, n, n, perm_t);
+    crossprod(r,    n, n, r,           n, n, r2);
+    matprod  (r2,   n, n, perm_t,      n, n, r2_x_perm_t);
+    matprod  (perm, n, n, r2_x_perm_t, n, n, hess);
 
-    for (j = 0; j < n; j++)
-        for (i = 0; i < n; i++)
-            for (k = 0; k < n; k++)
-                r2[j*n + i] += r[i*n + k] * r[j*n + k];
-
-    for (j = 0; j < n; j++)
-        for (i = 0; i < n; i++)
-            for (k = 0; k < n; k++)
-                r2_x_perm[j*n + i] += r2[k*n + i] * perm[k*n + j];
-
-    for (j = 0; j < n; j++)
-        for (i = 0; i < n; i++)
-            for (k = 0; k < n; k++)
-                hess[j*n + i] += perm[k*n + i] * r2_x_perm[j*n + k];
 
     for (i = 0; i < n*n; i++)
         NUMERIC_POINTER(sexp_hess)[i] = hess[i];
