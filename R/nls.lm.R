@@ -12,7 +12,7 @@ nls.lm <- function(par, fn, jac = NULL, control = list(), ...)
     con <- list(ftol = sqrt(.Machine$double.eps),
                 ptol = sqrt(.Machine$double.eps),
                 gtol = 0,
-                diag = numeric(),
+                diag = list(),
                 epsfcn = 0,
                 factor = 100,
                 maxfev = 100*(length(par) + 1),

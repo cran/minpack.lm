@@ -63,10 +63,19 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
 
     OS = (OptStruct) R_alloc(1, sizeof(opt_struct));
 
-    PROTECT(OS->par = AS_VECTOR(duplicate(par_arg)));
+    PROTECT(OS->par = duplicate(par_arg));
     n = length(OS->par);
-    for (i = 0; i < n; i++)
-        SET_VECTOR_ELT(OS->par, i, AS_NUMERIC(VECTOR_ELT(OS->par, i)));
+
+    switch (TYPEOF(OS->par)) {
+    case REALSXP:
+        break;
+    case VECSXP:
+        for (i = 0; i < n; i++)
+            SET_VECTOR_ELT(OS->par, i, AS_NUMERIC(VECTOR_ELT(OS->par, i)));
+        break;
+    default:
+        error("`par' that you provided is non-list and non-numeric!");
+    }
 
     if (!isFunction(fn)) error("fn is not a function!");
     PROTECT(OS->fcall = lang2(fn, OS->par));
@@ -77,25 +86,25 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     PROTECT(eval_test = eval(OS->fcall, OS->env));
     if (!IS_NUMERIC(eval_test))
         error("evaluation of fn function returns non-numeric vector!");
+    m = length(eval_test);
     UNPROTECT(1);
 
-    m = length(eval_test);
-    ldfjac = (m > n ? m : n);
+    ldfjac = (m > n) ? m : n;
 
-    par       = (double*) R_alloc(n,          sizeof(double));
-    fvec      = (double*) R_alloc(m,          sizeof(double));
-    fjac      = (double*) R_alloc(ldfjac * n, sizeof(double));
-    qtf       = (double*) R_alloc(n,          sizeof(double));
-    wa1       = (double*) R_alloc(n,          sizeof(double));
-    wa2       = (double*) R_alloc(n,          sizeof(double));
-    wa3       = (double*) R_alloc(n,          sizeof(double));
-    wa4       = (double*) R_alloc(m,          sizeof(double));
-    ipvt      = (int   *) R_alloc(n,          sizeof(int   ));
-    perm      = (int   *) R_alloc(n * n,      sizeof(int   ));
-    r         = (double*) R_alloc(n * n,      sizeof(double));
-    r2        = (double*) R_alloc(n * n,      sizeof(double));
-    r2_x_perm = (double*) R_alloc(n * n,      sizeof(double));
-    hess      = (double*) R_alloc(n * n,      sizeof(double));
+    par       = (double *) R_alloc(n,          sizeof(double));
+    fvec      = (double *) R_alloc(m,          sizeof(double));
+    fjac      = (double *) R_alloc(ldfjac * n, sizeof(double));
+    qtf       = (double *) R_alloc(n,          sizeof(double));
+    wa1       = (double *) R_alloc(n,          sizeof(double));
+    wa2       = (double *) R_alloc(n,          sizeof(double));
+    wa3       = (double *) R_alloc(n,          sizeof(double));
+    wa4       = (double *) R_alloc(m,          sizeof(double));
+    ipvt      = (int    *) R_alloc(n,          sizeof(int   ));
+    perm      = (int    *) R_alloc(n * n,      sizeof(int   ));
+    r         = (double *) R_alloc(n * n,      sizeof(double));
+    r2        = (double *) R_alloc(n * n,      sizeof(double));
+    r2_x_perm = (double *) R_alloc(n * n,      sizeof(double));
+    hess      = (double *) R_alloc(n * n,      sizeof(double));
 
     OS->ftol   = NUMERIC_VALUE(getListElement(control, "ftol"));
     OS->xtol   = NUMERIC_VALUE(getListElement(control, "ptol"));
@@ -105,26 +114,49 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     OS->diag   = (double*) R_alloc(n, sizeof(double));
 
     PROTECT_WITH_INDEX(sexp_diag = getListElement(control, "diag"), &ipx);
-    if (length(sexp_diag) == n) {
-        REPROTECT(sexp_diag = AS_VECTOR(duplicate(sexp_diag)), ipx);
-        for (i = 0; i < n; i++) {
-            SET_VECTOR_ELT(sexp_diag, i, AS_NUMERIC(VECTOR_ELT(sexp_diag, i)));
-            OS->diag[i] = NUMERIC_VALUE(VECTOR_ELT(sexp_diag, i));
+    switch (TYPEOF(sexp_diag)) {
+    case REALSXP:
+        if (length(sexp_diag) == n) {
+            REPROTECT(sexp_diag = duplicate(sexp_diag), ipx);
+            for (i = 0; i < n; i++)
+                OS->diag[i] = NUMERIC_POINTER(sexp_diag)[i];
+            mode = 2;
         }
-        mode = 2;
+        else {
+            REPROTECT(sexp_diag = NEW_NUMERIC(n), ipx);
+            mode = 1;
+        }
+        break;
+    case VECSXP:
+        if (length(sexp_diag) == n) {
+            REPROTECT(sexp_diag = duplicate(sexp_diag), ipx);
+            for (i = 0; i < n; i++) {
+                SET_VECTOR_ELT(sexp_diag, i, AS_NUMERIC(VECTOR_ELT(sexp_diag, i)));
+                OS->diag[i] = NUMERIC_VALUE(VECTOR_ELT(sexp_diag, i));
+            }
+            mode = 2;
+        }
+        else {
+            REPROTECT(sexp_diag = NEW_LIST(n), ipx);
+            for (i = 0; i < n; i++)
+                SET_VECTOR_ELT(sexp_diag, i, NEW_NUMERIC(1));
+            mode = 1;
+        }
+        break;
+    default:
+        error("`diag' that you provided is non-list and non-numeric!");
     }
-    else {
-        REPROTECT(sexp_diag = NEW_LIST(n), ipx);
-        for (i = 0; i < n; i++)
-            SET_VECTOR_ELT(sexp_diag, i, NEW_NUMERIC(1));
-        mode = 1;
-    }
-
     maxfev = INTEGER_VALUE(getListElement(control, "maxfev"));
     nprint = INTEGER_VALUE(getListElement(control, "nprint"));
 
-    for (i = 0; i < n; i++)
-        par[i] = NUMERIC_VALUE(VECTOR_ELT(OS->par, i));
+    if (IS_NUMERIC(OS->par)) {
+        for (i = 0; i < n; i++)
+            par[i] = NUMERIC_POINTER(OS->par)[i];
+    }
+    else {
+        for (i = 0; i < n; i++)
+            par[i] = NUMERIC_VALUE(VECTOR_ELT(OS->par, i));
+    }
 
     niter = -1;
 
@@ -209,8 +241,14 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     PROTECT(sexp_message = NEW_STRING(1));
     SET_VECTOR_ELT(sexp_message, 0, mkChar(message));
 
-    for (i = 0; i < n; i++)
-        NUMERIC_POINTER(VECTOR_ELT(sexp_diag, i))[0] = OS->diag[i];
+    if (IS_NUMERIC(sexp_diag)) {
+        for (i = 0; i < n; i++)
+            NUMERIC_POINTER(sexp_diag)[i] = OS->diag[i];
+    }
+    else {
+        for (i = 0; i < n; i++)
+            NUMERIC_POINTER(VECTOR_ELT(sexp_diag, i))[0] = OS->diag[i];
+    }
 
     PROTECT(out = NEW_LIST(6));
     SET_VECTOR_ELT(out, 0, OS->par);

@@ -44,7 +44,7 @@ nls.lm(par, fn, jac = NULL, control = list(), \dots)
       in absolute value. Therefore, \code{gtol} measures the
       orthogonality desired between the function vector and the
       columns of the Jacobian.}
-    \item{\code{diag}}{list or vector containing positive
+    \item{\code{diag}}{a list or numeric vector containing positive
       entries that serve as multiplicative scale factors for the
       parameters. Length of \code{diag} should be equal to that of
       \code{par}. If not, user-provided \code{diag} is ignored and
@@ -215,28 +215,27 @@ j <- function(T, tau, N0, a, f0) {
 }
 
 T <- seq(0, 8, len=501)
-p <- list("tau" = 2.2, "N0" = 1000, "a" = 0.25, "f0" = 8)
+p <- c("tau" = 2.2, "N0" = 1000, "a" = 0.25, "f0" = 8)
 
-N <- do.call("f", c(list(T = T), p))
+N <- do.call("f", c(list(T = T), as.list(p)))
 N <- rnorm(length(N), mean=N, sd=sqrt(N))
 
 x11()
 plot(T, N, bg = "black", pch = 21, cex = 0.5)
 
-
 fcn     <- function(p, T, N, N.Err, fcall, jcall)
-    (N - do.call("fcall", c(list(T = T), p)))/N.Err
+    (N - do.call("fcall", c(list(T = T), as.list(p))))/N.Err
 fcn.jac <- function(p, T, N, N.Err, fcall, jcall) {
     N.Err <- rep(N.Err, length(p))
-    -do.call("jcall", c(list(T = T), p))/N.Err
+    -do.call("jcall", c(list(T = T), as.list(p)))/N.Err
 }
 
-guess <- list("tau" = 2.2, "N0" = 1500, "a" = 0.25, "f0" = 10)
+guess <- c("tau" = 2.2, "N0" = 1500, "a" = 0.25, "f0" = 10)
 
-out <- nls.lm(par = guess, fn = fcn, jac = fcn.jac,
+out <- nls.lm(par = guess, fn = fcn, #jac = fcn.jac,
               fcall = f, jcall = j,
               T = T, N = N, N.Err = sqrt(N),
-              control = list(nprint = 3))
+              control = list(nprint = 3, diag = numeric()))
 N1 <- do.call("f", c(list(T = T), out$par))  # N1 == N - sqrt(N)*out$fvec
 
 lines(T, N1, col="blue", lwd=2)
