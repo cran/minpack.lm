@@ -1,0 +1,17 @@
+src/chkder.f
+src/dogleg.f
+src/dpmpar.f
+src/enorm.f
+src/fdjac2.f
+src/lmder.f
+src/lmdif.f
+src/lmpar.f
+src/qform.f
+src/qrfac.f
+src/qrsolv.f
+src/r1mpyq.f
+src/r1updt.f
+src/rwupdt.f
+  From the public domain source of MINPACK package by Jorge More'
+  <more@mcs.anl.gov>, Burt Garbow, and Ken Hillstrom at Argonne National
+  Laboratory. MINPACK is downloaded from http://ftp.netlib.org/minpack.
