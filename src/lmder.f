@@ -1,7 +1,7 @@
       subroutine lmder(fcn,m,n,x,fvec,fjac,ldfjac,ftol,xtol,gtol,
-     *                 maxfev,diag,mode,factor,nprint,info,nfev,njev,
-     *                 ipvt,qtf,wa1,wa2,wa3,wa4)
-      integer m,n,ldfjac,maxfev,mode,nprint,info,nfev,njev
+     *                 maxfev,maxiter,diag,mode,factor,nprint,info,
+     *                 nfev,njev, ipvt,qtf,wa1,wa2,wa3,wa4)
+      integer m,n,ldfjac,maxfev,maxiter,mode,nprint,info,nfev,njev
       integer ipvt(n)
       double precision ftol,xtol,gtol,factor
       double precision x(n),fvec(m),fjac(ldfjac,n),diag(n),qtf(n),
@@ -18,7 +18,7 @@ c
 c     the subroutine statement is
 c
 c       subroutine lmder(fcn,m,n,x,fvec,fjac,ldfjac,ftol,xtol,gtol,
-c                        maxfev,diag,mode,factor,nprint,info,nfev,
+c                        maxfev,maxiter,diag,mode,factor,nprint,info,nfev,
 c                        njev,ipvt,qtf,wa1,wa2,wa3,wa4)
 c
 c     where
@@ -28,9 +28,9 @@ c         calculates the functions and the jacobian. fcn must
 c         be declared in an external statement in the user
 c         calling program, and should be written as follows.
 c
-c         subroutine fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+c         subroutine fcn(m,n,x,fvec,fjac,ldfjac,iflag,rss)
 c         integer m,n,ldfjac,iflag
-c         double precision x(n),fvec(m),fjac(ldfjac,n)
+c         double precision x(n),fvec(m),fjac(ldfjac,n),rss
 c         ----------
 c         if iflag = 1 calculate the functions at x and
 c         return this vector in fvec. do not alter fjac.
@@ -95,6 +95,9 @@ c       maxfev is a positive integer input variable. termination
 c         occurs when the number of calls to fcn with iflag = 1
 c         has reached maxfev.
 c
+c       maxiter is a positive integer input variable. termination
+c         occurs when the number of iteration exceeds maxiter.
+c
 c       diag is an array of length n. if mode = 1 (see
 c         below), diag is internally set. if mode = 2, diag
 c         must contain positive entries that serve as
@@ -151,6 +154,8 @@ c
 c         info = 8  gtol is too small. fvec is orthogonal to the
 c                   columns of the jacobian to machine precision.
 c
+c         info = 9  number of iterations has exceeded maxiter.
+c
 c       nfev is an integer output variable set to the number of
 c         calls to fcn with iflag = 1.
 c
@@ -179,15 +184,18 @@ c       minpack-supplied ... dpmpar,enorm,lmpar,qrfac
 c
 c       fortran-supplied ... dabs,dmax1,dmin1,dsqrt,mod
 c
+c       added for R ........ ss 
+c
 c     argonne national laboratory. minpack project. march 1980.
 c     burton s. garbow, kenneth e. hillstrom, jorge j. more
+c     minor changes added by k. mullen. march 2008. 
 c
 c     **********
       integer i,iflag,iter,j,l
       double precision actred,delta,dirder,epsmch,fnorm,fnorm1,gnorm,
      *                 one,par,pnorm,prered,p1,p5,p25,p75,p0001,ratio,
-     *                 sum,temp,temp1,temp2,xnorm,zero
-      double precision dpmpar,enorm
+     *                 sum,temp,temp1,temp2,xnorm,zero,rss
+      double precision dpmpar,enorm,ss
       data one,p1,p5,p25,p75,p0001,zero
      *     /1.0d0,1.0d-1,5.0d-1,2.5d-1,7.5d-1,1.0d-4,0.0d0/
 c
@@ -204,7 +212,8 @@ c     check the input parameters for errors.
 c
       if (n .le. 0 .or. m .lt. n .or. ldfjac .lt. m
      *    .or. ftol .lt. zero .or. xtol .lt. zero .or. gtol .lt. zero
-     *    .or. maxfev .le. 0 .or. factor .le. zero) go to 300
+     *    .or. maxfev .le. 0 .or. maxiter .lt. 0 
+     *    .or. factor .le. zero) go to 300
       if (mode .ne. 2) go to 20
       do 10 j = 1, n
          if (diag(j) .le. zero) go to 300
@@ -215,11 +224,11 @@ c     evaluate the function at the starting point
 c     and calculate its norm.
 c
       iflag = 1
-      call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+      call fcn(m,n,x,fvec,fjac,ldfjac,iflag,rss)
       nfev = 1
-      if (iflag .lt. 0) go to 300
       fnorm = enorm(m,fvec)
-c
+      if (iflag .lt. 0) go to 300
+c     
 c     initialize levenberg-marquardt parameter and iteration counter.
 c
       par = zero
@@ -232,16 +241,17 @@ c
 c        calculate the jacobian matrix.
 c
          iflag = 2
-         call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+         call fcn(m,n,x,fvec,fjac,ldfjac,iflag,rss)
          njev = njev + 1
          if (iflag .lt. 0) go to 300
 c
 c        if requested, call fcn to enable printing of iterates.
 c
-         if (nprint .le. 0) go to 40
+         if (nprint .le. 0 .or. maxiter .eq. 0) go to 40
+         rss = ss(m,fvec)
          iflag = 0
          if (mod(iter-1,nprint) .eq. 0)
-     *      call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+     *      call fcn(m,n,x,fvec,fjac,ldfjac,iflag,rss)
          if (iflag .lt. 0) go to 300
    40    continue
 c
@@ -320,7 +330,11 @@ c
             diag(j) = dmax1(diag(j),wa2(j))
   180       continue
   190    continue
-c
+         IF (maxiter .lt. iter) THEN 
+            info = 9 
+            go to 300
+         END IF
+c     
 c        beginning of the inner loop.
 c
   200    continue
@@ -346,7 +360,7 @@ c
 c           evaluate the function at x + p and calculate its norm.
 c
             iflag = 1
-            call fcn(m,n,wa2,wa4,fjac,ldfjac,iflag)
+            call fcn(m,n,wa2,wa4,fjac,ldfjac,iflag,rss)
             nfev = nfev + 1
             if (iflag .lt. 0) go to 300
             fnorm1 = enorm(m,wa4)
@@ -411,6 +425,8 @@ c
             xnorm = enorm(n,wa2)
             fnorm = fnorm1
             iter = iter + 1
+            iflag = 3
+            call fcn(m,n,wa2,wa4,iflag,rss)
   290       continue
 c
 c           tests for convergence.
@@ -425,6 +441,7 @@ c
 c           tests for termination and stringent tolerances.
 c
             if (nfev .ge. maxfev) info = 5
+            if (iter .gt. maxiter) info = 9
             if (dabs(actred) .le. epsmch .and. prered .le. epsmch
      *          .and. p5*ratio .le. one) info = 6
             if (delta .le. epsmch*xnorm) info = 7
@@ -443,8 +460,9 @@ c
 c     termination, either normal or user imposed.
 c
       if (iflag .lt. 0) info = iflag
+      rss = ss(m,fvec)
       iflag = 0
-      if (nprint .gt. 0) call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+      if (nprint .gt. 0) call fcn(m,n,x,fvec,fjac,ldfjac,iflag,rss)
       return
 c
 c     last card of subroutine lmder.

@@ -1,0 +1,12 @@
+export(nls.lm, nls.lm.control)
+
+S3method("print", "nls.lm")
+S3method("residuals", "nls.lm")
+S3method("coef", "nls.lm")
+S3method("deviance", "nls.lm")
+S3method("summary", "nls.lm")
+S3method("vcov", "nls.lm")
+S3method("df.residual", "nls.lm")
+S3method("print", "summary.nls.lm")
+
+

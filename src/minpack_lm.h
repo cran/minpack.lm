@@ -14,25 +14,25 @@ typedef struct opt_struct {
     double factor;
 } opt_struct, *OptStruct;
 
-void fcn_lmdif(int *m, int *n, double *par, double *fvec, int *iflag);
-void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldfjac, int *iflag);
-void F77_NAME(lmdif)(void (*fcn_lmdif)(int *m, int *n, double *par, double *fvec, int *iflag),
+void fcn_lmdif(int *m, int *n, double *par, double *fvec, int *iflag, double *rss);
+void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldfjac, int *iflag, double *rss);
+void F77_NAME(lmdif)(void (*fcn_lmdif)(int *m, int *n, double *par, double *fvec, int *iflag, double *rss),
                      int *m, int *n, double *par, double *fvec,
-                     double *ftol, double *ptol, double *gtol, int *maxfev,
+                     double *ftol, double *ptol, double *gtol, int *maxfev, int *maxiter, 
                      double *epsfcn, double *diag, int *mode, double *factor,
                      int *nprint, int *info, int *nfev, double *fjac,
                      int *ldfjac, int *ipvt, double *qtf,
                      double *wa1, double *wa2, double *wa3, double *wa4);
-void F77_NAME(lmder)(void (*fcn_lmder)(int *m, int *n, double *par, double *fvec, double *fjac, int *ldfjac, int *iflag),
+		    void F77_NAME(lmder)(void (*fcn_lmder)(int *m, int *n, double *par, double *fvec, double *fjac, int *ldfjac, int *iflag, double *rss),
                      int *m, int *n, double *par, double *fvec,
                      double *fjac, int *ldfjac,
                      double *ftol, double *ptol, double *gtol,
-                     int *maxfev, double *diag, int *mode,
+                     int *maxfev, int *maxiter, double *diag, int *mode,
                      double *factor, int *nprint, int *info,
                      int *nfev, int *njev, int *ipvt,
                      double *qtf, double *wa1, double *wa2,
                      double *wa3, double *wa4);
-char *fcn_message(char*, int, int);
+char *fcn_message(char*, int, int, int);
 
 void transpose(double *x, int nrx, int ncx, double *y);
 void matprod  (double *x, int nrx, int ncx, double *y, int nry, int ncy, double *z);

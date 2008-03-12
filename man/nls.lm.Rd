@@ -1,78 +1,41 @@
 \name{nls.lm}
 \alias{nls.lm}
-\title{Solving NLS problem by Levenberg-Marquardt algorithm}
+\encoding{UTF-8}
+\title{Addresses NLS problems with the Levenberg-Marquardt algorithm}
 \description{
-  The purpose of \code{nls.lm} is to minimize the square sum of the vector
-  returned by \code{fn} function, by a modification of the Levenberg-Marquardt
-  algorithm. The user may also provide \code{jac} function which calculates
-  the Jacobian.
+  The purpose of \code{nls.lm} is to minimize the sum square of the
+  vector returned by the function \code{fn}, by a modification of the
+  Levenberg-Marquardt algorithm. The user may also provide a 
+  function \code{jac} which calculates the Jacobian.
 }
 \usage{
-nls.lm(par, fn, jac = NULL, control = list(), \dots)
+nls.lm(par, fn, jac = NULL, control = nls.lm.control(), \dots)
 }
 \arguments{
- \item{par}{A list or numeric vector of starting estimates.}
- \item{fn}{A function, least squares of which is to be minimized, with
-   first argument the list of parameters over which minimization is to
-   take place.}
+ \item{par}{A list or numeric vector of starting estimates. If
+   \code{par} is a list, then each element must be of length 1. }
+ \item{fn}{A function that returns a vector of residuals, the sum square
+   of which is to be minimized.  The first argument of \code{fn} must be
+   \code{par}. }
  \item{jac}{A function to return the Jacobian for the \code{fn} function.}
- \item{control}{A list of control parameters. See \bold{Details}.}
+ \item{control}{
+    An optional list of control settings.  See \code{\link{nls.lm.control}} for
+    the names of the settable control values and their effect.
+}
  \item{\dots}{Further arguments to be passed to \code{fn} and \code{jac}.}
 }
 \details{
   Both functions \code{fn} and \code{jac} (if provided) must return
-  numeric vectors. Length of the vector, returned by \code{fn}, must
-  not be lower than that of \code{par}. Vector, that \code{jac} will
-  return, must have length equal to
+  numeric vectors. Length of the vector returned by \code{fn} must
+  not be lower than the length of \code{par}. The vector returned by
+  \code{jac} must have length equal to
   \eqn{length(\code{fn}(\code{par}, \dots))\cdot length(\code{par})}{%
        length(\code{fn}(\code{par}, \dots)) * length(\code{par})}.
 
-  The \code{control} argument is a list that can supply any of the
-  following components:
-  \describe{
-    \item{\code{ftol}}{non-negative numeric. Termination occurs when
-      both the actual and predicted relative reductions in the sum of
-      squares are at most \code{ftol}. Therefore, \code{ftol} measures
-      the relative error desired in the sum of squares.}
-    \item{\code{ptol}}{non-negative numeric. Termination occurs when
-      the relative error between two consecutive iterates is at most
-      \code{ptol}. Therefore, \code{ptol} measures the relative error
-      desired in the approximate solution.}
-    \item{\code{gtol}}{non-negative numeric. Termination occurs when
-      the cosine of the angle between result of \code{fn} evaluation
-      \eqn{fvec} and any column of the Jacobian is at most \code{gtol}
-      in absolute value. Therefore, \code{gtol} measures the
-      orthogonality desired between the function vector and the
-      columns of the Jacobian.}
-    \item{\code{diag}}{a list or numeric vector containing positive
-      entries that serve as multiplicative scale factors for the
-      parameters. Length of \code{diag} should be equal to that of
-      \code{par}. If not, user-provided \code{diag} is ignored and
-      \code{diag} is internally set.}
-    \item{\code{epsfcn}}{(used if \code{jac} is not provided) is a
-      numeric used in determining a suitable step for the
-      forward-difference approximation. This approximation assumes
-      that the relative errors in the functions are of the order of
-      \code{epsfcn}. If \code{epsfcn} is less than the machine
-      precision, it is assumed that the relative errors in the
-      functions are of the order of the machine precision.}
-    \item{\code{factor}}{positive numeric, used in determining the
-      initial step bound.  This bound is set to the product of
-      \code{factor} and the \eqn{|\code{diag}*\code{par}|} if nonzero,
-      or else to \code{factor} itself. In most cases \code{factor}
-      should lie in the interval (0.1,100). 100 is a generally
-      recommended value.}
-    \item{\code{maxfev}}{positive integer. Termination occur
-      when the number of calls to \code{fn} has reached \code{maxfev}.}
-    \item{\code{nprint}}{is an integer, that enables controlled
-      printing of iterates if it is positive. In this case, estimates
-      of \code{par} are printed at the beginning of the first
-      iteration and every \code{nprint} iterations thereafter and
-      immediately prior to return. If \code{nprint} is not positive,
-      no tracing information on the progress of the optimization is
-      produced.}
-  }
-  \bold{Successful completion.}\cr
+  The \code{control} argument is a list;  see \code{\link{nls.lm.control}} for
+    details.
+ 
+    \bold{Successful completion.}\cr
     \cr
     The accuracy of \code{nls.lm} is controlled by the convergence
     parameters \code{ftol}, \code{ptol}, and \code{gtol}. These
@@ -92,7 +55,7 @@ nls.lm(par, fn, jac = NULL, control = list(), \dots)
     \emph{First convergence test.}\cr
     If \eqn{|z|} denotes the Euclidean norm of a vector \eqn{z}, then
     this test attempts to guarantee that
-        \deqn{|fvec| < (1 + \code{ftol})\,|fvec_0|,}{%
+    \deqn{|fvec| < (1 + \code{ftol})\,|fvec_0|,}{%
               |fvec| < (1 + \code{ftol})|fvec0|,}
     where \eqn{fvec_0}{fvec0} denotes the result of \code{fn} function
     evaluated at \eqn{par_0}{par0}. If this condition is satisfied
@@ -107,19 +70,19 @@ nls.lm(par, fn, jac = NULL, control = list(), \dots)
     If \eqn{D} is the diagonal matrix whose entries are defined by the
     array \code{diag}, then this test attempt to guarantee that
         \deqn{|D\,(par - par_0)| < \code{ptol}\,|D\,par_0|,}{%
-              |D*(par - par0)| < \code{ptol}|D*par0|,}
-    If this condition is satisfied with \code{ptol} \eqn{\simeq
-    10^{-k}}{~ 10^(-k)}, then the larger components of
-    \eqn{(D\,par)}{D*par} have \eqn{k} significant decimal digits and
-    \code{info} is set to 2 (or to 3 if the first test is also
-    satisfied). There is a danger that the smaller components of
-    \eqn{(D\,par)}{D*par} may have large relative errors, but if
-    \code{diag} is internally set, then the accuracy of the components
-    of \eqn{par} is usually related to their sensitivity. Unless high
-    precision solutions are required, the recommended value for
-    \code{ptol} is the square root of the machine precision.\cr
-    \cr
-    \emph{Third convergence test.}\cr
+          |D*(par - par0)| < \code{ptol}|D*par0|,}
+	If this condition is satisfied with \code{ptol} \eqn{\simeq
+	  10^{-k}}{~ 10^(-k)}, then the larger components of
+	\eqn{(D\,par)}{D*par} have \eqn{k} significant decimal digits and
+	\code{info} is set to 2 (or to 3 if the first test is also
+	satisfied). There is a danger that the smaller components of
+	\eqn{(D\,par)}{D*par} may have large relative errors, but if
+	\code{diag} is internally set, then the accuracy of the components
+	of \eqn{par} is usually related to their sensitivity. Unless high
+	precision solutions are required, the recommended value for
+	\code{ptol} is the square root of the machine precision.\cr
+	\cr
+	\emph{Third convergence test.}\cr
     This test is satisfied when the cosine of the angle between the
     result of \code{fn} evaluation \eqn{fvec} and any column of the
     Jacobian at \eqn{par} is at most \code{gtol} in absolute value.
@@ -133,8 +96,8 @@ nls.lm(par, fn, jac = NULL, control = list(), \dots)
   \bold{Unsuccessful completion.}\cr
     \cr
     Unsuccessful termination of \code{nls.lm} can be due to improper
-    input parameters, arithmetic interrupts, or an excessive number of
-    function evaluations.\cr
+    input parameters, arithmetic interrupts, an excessive number of
+    function evaluations, or an excessive number of iterations. \cr
     \cr
     \emph{Improper input parameters.}\cr
     \code{info} is set to 0 if \eqn{length(\code{par}) = 0}, or
@@ -157,49 +120,64 @@ nls.lm(par, fn, jac = NULL, control = list(), \dots)
     by the progress of \eqn{fvec} and \code{info} is set to 5. In this
     case, it may be helpful to force \code{diag} to be internally set.
 
-}
+    \emph{Excessive number of function iterations.}\cr
+    The allowed number of iterations defaults to 50, can be increased if
+    desired. \cr
+
+    The list returned by \code{nls.lm} has methods 
+    for the generic functions \code{\link{coef}},
+    \code{\link{deviance}}, \code{\link{df.residual}},
+    \code{\link{print}}, \code{\link{residuals}}, \code{\link{summary}},
+    and \code{\link{vcov}}.
+
+  }
 \value{
   A list with components:
   \item{par}{The best set of parameters found.}
   \item{hessian}{A symmetric matrix giving an estimate of the Hessian
     at the solution found.}
-  \item{fvec}{The result of the last \code{fn} evaluation.}
-  \item{info, message}{\code{info} is an integer code indicating
-    status of convergence. Explanation of convergence code is stored
-    in the \code{message} component.
+  \item{fvec}{The result of the last \code{fn} evaluation; that is, the
+  residuals. }
+  \item{info}{\code{info} is an integer code indicating
+    the reason for termination.
     \describe{
       \item{0}{Improper input parameters.}
-      \item{1}{Both actual and predicted relative reductions in the
-               sum of squares are at most \code{ftol}.}
-      \item{2}{Relative error between two consecutive iterates is
-               at most \code{ptol}.}
-      \item{3}{Conditions for \code{info} = 1 and \code{info} = 2 both hold.}
-      \item{4}{The cosine of the angle between \code{fvec} and any column
-               of the Jacobian is at most \code{gtol} in absolute value.}
-      \item{5}{Number of calls to \code{fn} has reached \code{maxfev}.}
-      \item{6}{\code{ftol} is too small. No further reduction in the sum
-               of squares is possible.}
-      \item{7}{\code{ptol} is too small. No further improvement in the
-               approximate solution \code{par} is possible.}
-      \item{8}{\code{gtol} is too small. \code{fvec} is orthogonal to the
-               columns of the Jacobian to machine precision.}
-    }
-  }
+    \item{1}{Both actual and predicted relative reductions in the
+      sum of squares are at most \code{ftol}.}
+    \item{2}{Relative error between two consecutive iterates is
+      at most \code{ptol}.}
+    \item{3}{Conditions for \code{info} = 1 and \code{info} = 2 both hold.}
+    \item{4}{The cosine of the angle between \code{fvec} and any column
+      of the Jacobian is at most \code{gtol} in absolute value.}
+    \item{5}{Number of calls to \code{fn} has reached \code{maxfev}.}
+    \item{6}{\code{ftol} is too small. No further reduction in the sum
+      of squares is possible.}
+    \item{7}{\code{ptol} is too small. No further improvement in the
+      approximate solution \code{par} is possible.}
+    \item{8}{\code{gtol} is too small. \code{fvec} is orthogonal to the
+      columns of the Jacobian to machine precision.}
+    \item{9}{The number of iterations has reached \code{maxiter}.}
+  }}
+  \item{message}{character string indicating reason for termination}.
   \item{diag}{The result list of \code{diag}. See \bold{Details}.}
+  \item{niter}{The number of iterations completed before termination.}
+  \item{deviance}{The sum of the squared residual vector.}
 }
 \references{
-  Jorge J. More (1978) The Levenberg-Marquardt Algorithm, Implementation
-  and Theory. \emph{Lecture Notes in Mathematics}, \bold{630}, ed G. Watson.
+  J.J. Moré, "The Levenberg-Marquardt algorithm: implementation and
+  theory," in \emph{Lecture Notes in Mathematics}
+  \bold{630}: Numerical Analysis, G.A. Watson (Ed.),
+  Springer-Verlag: Berlin, 1978, pp. 105-116.
 }
 \note{
-  The public domain Fortran sources of MINPACK package by J.J. More,
-  implementing Levenberg-Marquardt algorithm were downloaded from
-  \url{http://ftp.netlib.org/minpack}, and left unchanged.\cr
-  The contents of this manual page is almost entirely extracted from
+  The public domain FORTRAN sources of MINPACK package by J.J. Moré,
+  implementing the Levenberg-Marquardt algorithm were downloaded from
+  \url{http://ftp.netlib.org/minpack}, and left largely unchanged. 
+  The contents of this manual page are largely extracted from
   the comments of MINPACK sources.
 }
 
-\seealso{\code{\link{optim}}, \code{\link{nls}}}
+\seealso{\code{\link{optim}}, \code{\link{nls}}, \code{\link{nls.lm.control}}}
 
 \examples{
 f <- function(T, tau, N0, a, f0) {
@@ -233,15 +211,16 @@ guess <- c("tau" = 2.2, "N0" = 1500, "a" = 0.25, "f0" = 10)
 
 out <- nls.lm(par = guess, fn = fcn, #jac = fcn.jac,
               fcall = f, jcall = j,
-              T = T, N = N, N.Err = sqrt(N),
-              control = list(nprint = 3, diag = numeric()))
+              T = T, N = N, N.Err = sqrt(N), 
+              control = nls.lm.control(nprint=1, diag = numeric()))
+
 N1 <- do.call("f", c(list(T = T), out$par))  # N1 == N - sqrt(N)*out$fvec
 
 lines(T, N1, col="blue", lwd=2)
-str(out)
 
-print(sqrt(diag(solve(out$hessian))))  # calculating of SSE
-#rm(f,j,fcn,fcn.jac,T,p,guess,N,N1,out)
-}}
+summary(out) 
+}
 \keyword{nonlinear}
 \keyword{optimize}
+\keyword{regression}
+

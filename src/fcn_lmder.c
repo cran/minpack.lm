@@ -3,8 +3,8 @@
 #include "minpack_lm.h"
 
 
-void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldfjac,
-               int *iflag)
+void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, 
+	       int *ldfjac, int *iflag, double *rss)
 {
     int i, j;
     SEXP sexp_fvec, sexp_fjac;
@@ -24,7 +24,7 @@ void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldf
         }
 
     if      (*iflag == 0) {
-        Rprintf("Iter =%4d", niter);
+        Rprintf("It. %4d, RSS = %10g, Par. =", niter, *rss);
         for (i = 0; i < *n; i++)
             Rprintf(" % 10g", par[i]);
         Rprintf("\n");
@@ -38,7 +38,6 @@ void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldf
 
         UNPROTECT(1);
 
-        niter++;
     }
     else if (*iflag == 2) {
         SETCADR(OS->jcall, OS->par);
@@ -50,4 +49,5 @@ void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac, int *ldf
 
         UNPROTECT(1);
     }
+    else if(*iflag == 3) niter++;
 }
