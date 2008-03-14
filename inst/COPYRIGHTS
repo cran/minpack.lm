@@ -1,6 +1,0 @@
-From the public domain source of MINPACK package by Jorge More'
-<more@mcs.anl.gov>, Burt Garbow, and Ken Hillstrom at Argonne National
-Laboratory. MINPACK is downloaded from http://ftp.netlib.org/minpack.
-All files are left unchanged, except for lmdif.f and lmder.f, which
-were modified a bit.
-   
