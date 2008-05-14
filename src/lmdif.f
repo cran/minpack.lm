@@ -1,13 +1,12 @@
-      subroutine lmdif(fcn,m,n,x,fvec,ftol,xtol,gtol,
-     *     maxfev,maxiter,epsfcn, diag,mode,factor,nprint,
-     *     info,nfev,fjac,ldfjac,ipvt,qtf,wa1,wa2,wa3,wa4)
-      integer m,n,maxfev,maxiter,mode,nprint,info,nfev,ldfjac
+      subroutine lmdif(fcn,m,n,x,fvec,ftol,xtol,gtol,maxfev,epsfcn,
+     *                 diag,mode,factor,nprint,info,nfev,fjac,ldfjac,
+     *                 ipvt,qtf,wa1,wa2,wa3,wa4)
+      integer m,n,maxfev,mode,nprint,info,nfev,ldfjac
       integer ipvt(n)
       double precision ftol,xtol,gtol,epsfcn,factor
       double precision x(n),fvec(m),diag(n),fjac(ldfjac,n),qtf(n),
      *                 wa1(n),wa2(n),wa3(n),wa4(m)
       external fcn
-      external intpr
 c     **********
 c
 c     subroutine lmdif
@@ -20,7 +19,7 @@ c     then calculated by a forward-difference approximation.
 c
 c     the subroutine statement is
 c
-c       subroutine lmdif(fcn,m,n,x,fvec,ftol,xtol,gtol,maxfev,maxiter,epsfcn,
+c       subroutine lmdif(fcn,m,n,x,fvec,ftol,xtol,gtol,maxfev,epsfcn,
 c                        diag,mode,factor,nprint,info,nfev,fjac,
 c                        ldfjac,ipvt,qtf,wa1,wa2,wa3,wa4)
 c
@@ -31,9 +30,9 @@ c         calculates the functions. fcn must be declared
 c         in an external statement in the user calling
 c         program, and should be written as follows.
 c
-c         subroutine fcn(m,n,x,fvec,iflag,rss)
+c         subroutine fcn(m,n,x,fvec,iflag)
 c         integer m,n,iflag
-c         double precision x(n),fvec(m),rss
+c         double precision x(n),fvec(m)
 c         ----------
 c         calculate the functions at x and
 c         return this vector in fvec.
@@ -79,9 +78,6 @@ c
 c       maxfev is a positive integer input variable. termination
 c         occurs when the number of calls to fcn is at least
 c         maxfev by the end of an iteration.
-c
-c       maxiter is a positive integer input variable. termination
-c         occurs when the number of iteration exceeds maxiter.
 c
 c       epsfcn is an input variable used in determining a suitable
 c         step length for the forward-difference approximation. this
@@ -146,8 +142,6 @@ c
 c         info = 8  gtol is too small. fvec is orthogonal to the
 c                   columns of the jacobian to machine precision.
 c
-c         info = 9  number of iterations has exceeded maxiter.
-c
 c       nfev is an integer output variable set to the number of
 c         calls to fcn.
 c
@@ -188,18 +182,16 @@ c
 c       minpack-supplied ... dpmpar,enorm,fdjac2,lmpar,qrfac
 c
 c       fortran-supplied ... dabs,dmax1,dmin1,dsqrt,mod
-c      
-c       added for R ........ ss 
-c       
+c
 c     argonne national laboratory. minpack project. march 1980.
 c     burton s. garbow, kenneth e. hillstrom, jorge j. more
-c     minor changes added by k. mullen. march 2008. 
+c
 c     **********
       integer i,iflag,iter,j,l
-      double precision actred,delta,dirder,epsmch,fnorm1,gnorm,
+      double precision actred,delta,dirder,epsmch,fnorm,fnorm1,gnorm,
      *                 one,par,pnorm,prered,p1,p5,p25,p75,p0001,ratio,
-     *                 sum,temp,temp1,temp2,xnorm,zero,rss
-      double precision dpmpar,enorm,ss
+     *                 sum,temp,temp1,temp2,xnorm,zero
+      double precision dpmpar,enorm
       data one,p1,p5,p25,p75,p0001,zero
      *     /1.0d0,1.0d-1,5.0d-1,2.5d-1,7.5d-1,1.0d-4,0.0d0/
 c
@@ -215,8 +207,7 @@ c     check the input parameters for errors.
 c
       if (n .le. 0 .or. m .lt. n .or. ldfjac .lt. m
      *    .or. ftol .lt. zero .or. xtol .lt. zero .or. gtol .lt. zero
-     *    .or. maxfev .le. 0 .or. maxiter .lt. 0 
-     *    .or. factor .le. zero) go to 300 
+     *    .or. maxfev .le. 0 .or. factor .le. zero) go to 300
       if (mode .ne. 2) go to 20
       do 10 j = 1, n
          if (diag(j) .le. zero) go to 300
@@ -227,10 +218,10 @@ c     evaluate the function at the starting point
 c     and calculate its norm.
 c
       iflag = 1
-      call fcn(m,n,x,fvec,iflag, rss)
+      call fcn(m,n,x,fvec,iflag)
       nfev = 1
+      if (iflag .lt. 0) go to 300
       fnorm = enorm(m,fvec)
-      if (iflag .lt. 0) go to 300      
 c
 c     initialize levenberg-marquardt parameter and iteration counter.
 c
@@ -250,10 +241,9 @@ c
 c
 c        if requested, call fcn to enable printing of iterates.
 c
-         if (nprint .le. 0 .or. maxiter .eq. 0) go to 40
-         rss = ss(m,fvec)
+         if (nprint .le. 0) go to 40
          iflag = 0
-         if (mod(iter-1,nprint) .eq. 0) call fcn(m,n,x,fvec,iflag,rss)
+         if (mod(iter-1,nprint) .eq. 0) call fcn(m,n,x,fvec,iflag)
          if (iflag .lt. 0) go to 300
    40    continue
 c
@@ -332,11 +322,6 @@ c
             diag(j) = dmax1(diag(j),wa2(j))
   180       continue
   190    continue
-         IF (maxiter .lt. iter) THEN 
-            info = 9 
-            go to 300
-         END IF
-c
 c
 c        beginning of the inner loop.
 c
@@ -363,7 +348,7 @@ c
 c           evaluate the function at x + p and calculate its norm.
 c
             iflag = 1
-            call fcn(m,n,wa2,wa4,iflag,rss)
+            call fcn(m,n,wa2,wa4,iflag)
             nfev = nfev + 1
             if (iflag .lt. 0) go to 300
             fnorm1 = enorm(m,wa4)
@@ -428,8 +413,6 @@ c
             xnorm = enorm(n,wa2)
             fnorm = fnorm1
             iter = iter + 1
-            iflag = 3
-            call fcn(m,n,wa2,wa4,iflag,rss)
   290       continue
 c
 c           tests for convergence.
@@ -444,7 +427,6 @@ c
 c           tests for termination and stringent tolerances.
 c
             if (nfev .ge. maxfev) info = 5
-            if (iter .gt. maxiter) info = 9
             if (dabs(actred) .le. epsmch .and. prered .le. epsmch
      *          .and. p5*ratio .le. one) info = 6
             if (delta .le. epsmch*xnorm) info = 7
@@ -463,9 +445,8 @@ c
 c     termination, either normal or user imposed.
 c
       if (iflag .lt. 0) info = iflag
-      rss = ss(m,fvec)
       iflag = 0
-      if (nprint .gt. 0) call fcn(m,n,x,fvec,iflag,rss)
+      if (nprint .gt. 0) call fcn(m,n,x,fvec,iflag)
       return
 c
 c     last card of subroutine lmdif.

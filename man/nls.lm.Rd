@@ -161,6 +161,8 @@ nls.lm(par, fn, jac = NULL, control = nls.lm.control(), \dots)
   \item{message}{character string indicating reason for termination}.
   \item{diag}{The result list of \code{diag}. See \bold{Details}.}
   \item{niter}{The number of iterations completed before termination.}
+  \item{rsstrace}{The residual sum of squares at each iteration.
+    Can be used to check the progress each iteration. }
   \item{deviance}{The sum of the squared residual vector.}
 }
 \references{
@@ -172,7 +174,7 @@ nls.lm(par, fn, jac = NULL, control = nls.lm.control(), \dots)
 \note{
   The public domain FORTRAN sources of MINPACK package by J.J. Moré,
   implementing the Levenberg-Marquardt algorithm were downloaded from
-  \url{http://ftp.netlib.org/minpack}, and left largely unchanged. 
+  \url{http://ftp.netlib.org/minpack}, and left unchanged. 
   The contents of this manual page are largely extracted from
   the comments of MINPACK sources.
 }
@@ -180,45 +182,103 @@ nls.lm(par, fn, jac = NULL, control = nls.lm.control(), \dots)
 \seealso{\code{\link{optim}}, \code{\link{nls}}, \code{\link{nls.lm.control}}}
 
 \examples{
-f <- function(T, tau, N0, a, f0) {
-    expr <- expression(N0*exp(-T/tau)*(1 + a*cos(f0*T)))
+
+###### example 1
+
+## values over which to simulate data 
+x <- seq(0,5,length=100)
+
+## model based on a list of parameters 
+getPred <- function(parS, xx) parS$a * exp(xx * parS$b) + parS$c 
+
+## parameter values used to simulate data
+pp <- list(a=9,b=-1, c=6) 
+
+## simulated data, with noise  
+simDNoisy <- getPred(pp,x) + rnorm(length(x),sd=.1)
+ 
+## plot data
+plot(x,simDNoisy, main="data")
+
+## residual function 
+residFun <- function(p, observed, xx) observed - getPred(p,xx)
+
+## starting values for parameters  
+parStart <- list(a=3,b=-.001, c=1)
+
+## perform fit 
+nls.out <- nls.lm(par=parStart, fn = residFun, observed = simDNoisy,
+xx = x, control = nls.lm.control(nprint=1))
+
+## plot model evaluated at final parameter estimates  
+lines(x,getPred(as.list(coef(nls.out)), x), col=2, lwd=2)
+
+## summary information on parameter estimates
+summary(nls.out) 
+
+###### example 2 
+
+## function to simulate data 
+f <- function(TT, tau, N0, a, f0) {
+    expr <- expression(N0*exp(-TT/tau)*(1 + a*cos(f0*TT)))
     eval(expr)
 }
-j <- function(T, tau, N0, a, f0) {
-    expr <- expression(N0*exp(-T/tau)*(1 + a*cos(f0*T)))
-    c(eval(D(expr, "tau")),
-      eval(D(expr, "N0" )),
-      eval(D(expr, "a"  )),
-      eval(D(expr, "f0" )))
+
+## helper function for an analytical gradient 
+j <- function(TT, tau, N0, a, f0) {
+    expr <- expression(N0*exp(-TT/tau)*(1 + a*cos(f0*TT)))
+    c(eval(D(expr, "tau")), eval(D(expr, "N0" )),
+      eval(D(expr, "a"  )), eval(D(expr, "f0" )))
 }
 
-T <- seq(0, 8, len=501)
-p <- c("tau" = 2.2, "N0" = 1000, "a" = 0.25, "f0" = 8)
+## values over which to simulate data 
+TT <- seq(0, 8, length=501)
 
-N <- do.call("f", c(list(T = T), as.list(p)))
-N <- rnorm(length(N), mean=N, sd=sqrt(N))
+## parameter values underlying simulated data  
+p <- c(tau = 2.2, N0 = 1000, a = 0.25, f0 = 8)
 
-plot(T, N, bg = "black", pch = 21, cex = 0.5)
+## get data 
+Ndet <- do.call("f", c(list(TT = TT), as.list(p)))
+## with noise
+N <- Ndet +  rnorm(length(Ndet), mean=Ndet, sd=.01*max(Ndet))
 
-fcn     <- function(p, T, N, N.Err, fcall, jcall)
-    (N - do.call("fcall", c(list(T = T), as.list(p))))/N.Err
-fcn.jac <- function(p, T, N, N.Err, fcall, jcall) {
-    N.Err <- rep(N.Err, length(p))
-    -do.call("jcall", c(list(T = T), as.list(p)))/N.Err
-}
+## plot the data to fit
+par(mfrow=c(2,1), mar = c(3,5,2,1))  
+plot(TT, N, bg = "black", cex = 0.5, main="data")
 
-guess <- c("tau" = 2.2, "N0" = 1500, "a" = 0.25, "f0" = 10)
+## define a residual function 
+fcn     <- function(p, TT, N, fcall, jcall)
+    (N - do.call("fcall", c(list(TT = TT), as.list(p))))
 
-out <- nls.lm(par = guess, fn = fcn, #jac = fcn.jac,
+## define analytical expression for the gradient 
+fcn.jac <- function(p, TT, N, fcall, jcall) 
+    -do.call("jcall", c(list(TT = TT), as.list(p)))
+
+## starting values 
+guess <- c(tau = 2.2, N0 = 1500, a = 0.25, f0 = 10)
+
+## to use an analytical expression for the gradient found in fcn.jac
+## uncomment jac = fcn.jac
+out <- nls.lm(par = guess, fn = fcn, jac = fcn.jac,
               fcall = f, jcall = j,
-              T = T, N = N, N.Err = sqrt(N), 
-              control = nls.lm.control(nprint=1, diag = numeric()))
+              TT = TT, N = N, control = nls.lm.control(nprint=1))
 
-N1 <- do.call("f", c(list(T = T), out$par))  # N1 == N - sqrt(N)*out$fvec
+## get the fitted values 
+N1 <- do.call("f", c(list(TT = TT), out$par))   
 
-lines(T, N1, col="blue", lwd=2)
+## add a blue line representing the fitting values to the plot of data 
+lines(TT, N1, col="blue", lwd=2)
 
+## add a plot of the log residual sum of squares as it is made to
+## decrease each iteration; note that the RSS at the starting parameter
+## values is also stored
+plot(1:(out$niter+1), log(out$rsstrace), type="b",
+main="log residual sum of squares vs. iteration number",
+xlab="iteration", ylab="log residual sum of squares", pch=21,bg=2) 
+
+## get information regarding standard errors
 summary(out) 
+
 }
 \keyword{nonlinear}
 \keyword{optimize}

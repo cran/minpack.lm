@@ -1,7 +1,7 @@
 nls.lm.control <- function(ftol = sqrt(.Machine$double.eps), ptol =
-                       sqrt(.Machine$double.eps), gtol = 0, diag
-                       = list(), epsfcn = 0, factor = 100, maxfev
-                       = integer(), maxiter = 50, nprint = 0)
+                           sqrt(.Machine$double.eps), gtol = 0, diag
+                           = list(), epsfcn = 0, factor = 100, maxfev
+                           = integer(), maxiter = 50, nprint = 0)
   list(ftol = ftol, ptol = ptol, gtol = gtol, diag = diag, epsfcn =
        epsfcn, factor = factor, maxfev = maxfev,
        maxiter = maxiter, nprint = nprint)
@@ -40,7 +40,7 @@ print.nls.lm <- function(x, digits = max(3, getOption("digits") - 3), ...)
     invisible(x)
 }
 deviance.nls.lm <- function(object, ...) object$deviance
-coef.nls.lm <- function(object, ...) object$par
+coef.nls.lm <- function(object, ...) unlist(object$par)
 residuals.nls.lm <- function(object, ...) object$fvec
 df.residual.nls.lm <- function(object, ...)
   length(resid(object)) - length(coef(object))

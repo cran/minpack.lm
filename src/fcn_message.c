@@ -18,12 +18,9 @@ char *fcn_message(char *msg, int info, int n, int nit)
         sprintf(msg, "`ptol' is too small. No further improvement in the approximate solution `par' is possible.");
     else if (info == 8)
         sprintf(msg, "`gtol' is too small. `fvec' is orthogonal to the columns of the Jacobian to machine precision.");
-    else if (info == 9)
+    else if (info < 0)
       sprintf(msg, "Number of iterations has reached `maxiter' == %d.", nit);
     else if (info == 0)
         sprintf(msg, "Improper input parameters.");
-    else
-        sprintf(msg, "Hmm, that `info' value (`info' == %d) should *NEVER* be returned! Please report bug to the package maintainer.", info);
-
     return msg;
 }

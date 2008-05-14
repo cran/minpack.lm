@@ -53,13 +53,8 @@ factor = 100, maxfev = integer(), maxiter = 50, nprint = 0)
       vector of parameters to be optimized.  }
     \item{maxiter}{positive integer. Termination occurs
       when the number of iterations reaches \code{maxiter}.}
-    \item{nprint}{is an integer, that enables controlled
-      printing of iterates if it is positive. In this case, estimates
-      of \code{par} are printed at the beginning of the first
-      iteration and every \code{nprint} iterations thereafter and
-      immediately prior to return. If \code{nprint} is not positive,
-      no tracing information on the progress of the optimization is
-      produced.}
+    \item{nprint}{is an integer; set \code{nprint} to be positive
+      to enable printing of iterates}
   }
   \value{
     A \code{list} with exactly nine components:
