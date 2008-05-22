@@ -170,7 +170,7 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     
     fcn_message(message, info, maxfev, OS->maxiter);
     if (info < 1 || 9 < info)
-      error("%s: info = %d. %s\n\n", lmfun_name, info, message);
+      warning("%s: info = %d. %s\n\n", lmfun_name, info, message);
     
     PROTECT(sexp_hess = NEW_NUMERIC(n*n));
     for (j = 0; j < n; j++)
