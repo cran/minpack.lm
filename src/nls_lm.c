@@ -50,8 +50,8 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     OS->env = rho;
 
     PROTECT(eval_test = eval(OS->fcall, OS->env));
-    if (!IS_NUMERIC(eval_test))
-        error("evaluation of fn function returns non-numeric vector!");
+    if (!IS_NUMERIC(eval_test) || length(eval_test) == 0)
+        error("evaluation of fn function returns non-sensible value!");
     m = length(eval_test);
     UNPROTECT(1);
 
@@ -124,11 +124,17 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
       OS->nprint = 1;
     if (IS_NUMERIC(OS->par)) {
       for (i = 0; i < n; i++)
+	if(R_FINITE(par[i]))
 	  par[i] = NUMERIC_POINTER(OS->par)[i];
+	else 
+	  error("Non-finite (or null) value for a parameter specified!");
     }
     else {
       for (i = 0; i < n; i++)
+	if(R_FINITE(par[i]))
 	  par[i] = NUMERIC_VALUE(VECTOR_ELT(OS->par, i));
+      	else 
+	  error("Non-finite (or null) value for a parameter specified!");
     }
 
     OS->niter = 0;
@@ -165,7 +171,7 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
         UNPROTECT(1);
         strcpy(lmfun_name, "lmder");
     }
-   
+    
 /*========================================================================*/
     
     fcn_message(message, info, maxfev, OS->maxiter);

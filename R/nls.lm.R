@@ -48,7 +48,8 @@ summary.nls.lm <- function (object, ...)
 {
     param <- coef(object)
     pnames <- names(param)
-    ih <- solve(object$hessian)
+    ibb <- chol(object$hessian)
+    ih <- chol2inv(ibb)
     p <- length(param)
     rdf <- length(object$fvec) - p 
     resvar <- deviance(object) / rdf

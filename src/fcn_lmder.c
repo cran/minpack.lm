@@ -14,13 +14,13 @@ void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac,
   if (IS_NUMERIC(OS->par))
     for (i = 0; i < *n; i++) {
       if (!R_FINITE(par[i]))
-	error("non-finite value supplied by lmdif!");
+	error("non-finite parameter value supplied by lmder!");
       NUMERIC_POINTER(OS->par)[i] = par[i];
     }
   else
     for (i = 0; i < *n; i++) {
       if (!R_FINITE(par[i]))
-	error("non-finite value supplied by lmdif!");
+	error("non-finite value supplied by lmder!");
       NUMERIC_POINTER(VECTOR_ELT(OS->par, i))[0] = par[i];
     }
   
@@ -44,6 +44,8 @@ void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac,
       fvec[i] = NUMERIC_POINTER(sexp_fvec)[i];
       sumf += fvec[i]*fvec[i];
     }
+    if(!R_FINITE(sumf))
+      error("NaN value of the RSS supplied by lmder!");
     OS->rsstrace[OS->niter] = sumf;
   }
   else if (*iflag == 2) {

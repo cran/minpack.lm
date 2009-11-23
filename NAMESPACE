@@ -1,3 +1,4 @@
+useDynLib(minpack.lm)
 export(nls.lm, nls.lm.control)
 
 S3method("print", "nls.lm")
