@@ -13,14 +13,10 @@ void fcn_lmdif(int *m, int *n, double *par, double *fvec,
     /* Rprintf("fcn-lmdif calling...\n"); */
     if (IS_NUMERIC(OS->par))
       for (i = 0; i < *n; i++) {
-	if (!R_FINITE(par[i]))
-	  error("non-finite parameter value supplied by lmdif!");
 	NUMERIC_POINTER(OS->par)[i] = par[i];
         }
     else
       for (i = 0; i < *n; i++) {
-	if (!R_FINITE(par[i]))
-	  error("non-finite value supplied by lmdif!");
 	NUMERIC_POINTER(VECTOR_ELT(OS->par, i))[0] = par[i];
       }
     if(*iflag == 0){ 
@@ -44,8 +40,7 @@ void fcn_lmdif(int *m, int *n, double *par, double *fvec,
       sumf = 0;
       for (i = 0; i < *m; i++) 
 	sumf += (fvec[i]*fvec[i]);
-      if(!R_FINITE(sumf))
-	error("NaN value of the RSS supplied by lmdif!");
+     
       OS->rsstrace[OS->niter] = sumf;
       
     }

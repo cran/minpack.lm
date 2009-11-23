@@ -124,14 +124,14 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
       OS->nprint = 1;
     if (IS_NUMERIC(OS->par)) {
       for (i = 0; i < n; i++)
-	if(R_FINITE(par[i]))
+	if(R_FINITE(NUMERIC_POINTER(OS->par)[i]))
 	  par[i] = NUMERIC_POINTER(OS->par)[i];
 	else 
 	  error("Non-finite (or null) value for a parameter specified!");
     }
     else {
       for (i = 0; i < n; i++)
-	if(R_FINITE(par[i]))
+	if(R_FINITE(NUMERIC_VALUE(VECTOR_ELT(OS->par, i))))
 	  par[i] = NUMERIC_VALUE(VECTOR_ELT(OS->par, i));
       	else 
 	  error("Non-finite (or null) value for a parameter specified!");
