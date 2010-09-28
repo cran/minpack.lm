@@ -128,6 +128,7 @@ nls.lm(par, fn, jac = NULL, control = nls.lm.control(), \dots)
     for the generic functions \code{\link{coef}},
     \code{\link{deviance}}, \code{\link{df.residual}},
     \code{\link{print}}, \code{\link{residuals}}, \code{\link{summary}},
+    \code{\link{confint}},
     and \code{\link{vcov}}.
 
   }

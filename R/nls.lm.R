@@ -81,8 +81,20 @@ print.summary.nls.lm <-
   cat("Reason for termination:", x$stopmess, "\n")
   invisible(x)
 }
-vcov.nls.lm <- function(object, ...)
-{
-    sm <- summary(object)
-    sm$cov.unscaled * sm$sigma^2
+
+vcov.nls.lm <- function(object,...) {
+  object$deviance/(length(object$fvec)-length(object$par))*solve(object$hessian)
 }
+
+confint.nls.lm <- function(object, parm, level = 0.95, ...) {
+  cc <- coef(object)
+  if (missing(parm)) parm <- seq_along(cc)
+  levs <- c((1-level)/2,0.5+level/2)
+  dfval <- (length(object$fvec)-length(object$par))
+  tdist <- qt(levs[2],dfval)
+  m1 <- outer(sqrt(diag(vcov(object))),c(-1,1))*tdist
+  m2 <- sweep(m1,cc,MARGIN=1,"+")
+  colnames(m2) <- paste(100*levs,"%",sep="")
+  m2[parm,]
+}
+
