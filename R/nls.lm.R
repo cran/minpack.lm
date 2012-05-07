@@ -5,11 +5,20 @@ nls.lm.control <- function(ftol = sqrt(.Machine$double.eps), ptol =
   list(ftol = ftol, ptol = ptol, gtol = gtol, diag = diag, epsfcn =
        epsfcn, factor = factor, maxfev = maxfev,
        maxiter = maxiter, nprint = nprint)
-nls.lm <- function(par, fn, jac = NULL, control = nls.lm.control(), ...)
+nls.lm <- function(par, lower=NULL, upper=NULL,fn, jac = NULL, 
+       	  control = nls.lm.control(), ...)
 {
   fn1  <- function(par) fn(par, ...)
   jac1 <- if (!is.null(jac))
     function(par) jac(par, ...)
+  if(is.null(lower))
+    lower <- rep(-Inf,length(par))
+  if(is.null(upper))
+    upper <- rep(Inf,length(par))
+  if(length(lower) != length(par))
+    stop("length(lower) must be equal to length(par)")
+   if(length(upper) != length(par))
+    stop("length(upper) must be equal to length(par)")
   ctrl <- nls.lm.control()
   if(!missing(control)) {
     control <- as.list(control)
@@ -17,7 +26,8 @@ nls.lm <- function(par, fn, jac = NULL, control = nls.lm.control(), ...)
   }
   if(length(ctrl[["maxfev"]]) == 0)
     ctrl[["maxfev"]] <- 100*(length(unlist(par)) + 1) 
-  out <- .Call("nls_lm", par, fn1, jac1, ctrl, new.env(), PACKAGE = "minpack.lm")
+  out <- .Call("nls_lm", par, lower, upper, fn1, jac1, ctrl, new.env(),
+               PACKAGE = "minpack.lm")
   
   out$hessian <- matrix(out$hessian, nrow = length(unlist(par)))
   

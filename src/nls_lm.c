@@ -4,7 +4,8 @@
 
 OptStruct OS;
 
-SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
+SEXP nls_lm(SEXP par_arg, SEXP lower_arg, SEXP upper_arg, SEXP fn, SEXP jac, 
+	    SEXP control, SEXP rho)
 {
     int     i, j;
     int     n, m, ldfjac;
@@ -30,6 +31,8 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     OS = (OptStruct) R_alloc(1, sizeof(opt_struct));
 
     PROTECT(OS->par = duplicate(par_arg));
+    PROTECT(OS->lower = duplicate(lower_arg));
+    PROTECT(OS->upper = duplicate(upper_arg));
     n = length(OS->par);
 
     switch (TYPEOF(OS->par)) {
@@ -42,7 +45,27 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
     default:
         error("`par' that you provided is non-list and non-numeric!");
     }
-
+    switch (TYPEOF(OS->lower)) {
+    case REALSXP:
+        break;
+    case VECSXP:
+        for (i = 0; i < n; i++)
+	  SET_VECTOR_ELT(OS->lower, i, AS_NUMERIC(VECTOR_ELT(OS->lower, i)));
+        break;
+    default:
+        error("`lower' that you provided is non-list and non-numeric!");
+    }
+    switch (TYPEOF(OS->upper)) {
+    case REALSXP:
+        break;
+    case VECSXP:
+        for (i = 0; i < n; i++)
+	  SET_VECTOR_ELT(OS->upper, i, AS_NUMERIC(VECTOR_ELT(OS->upper, i)));
+        break;
+    default:
+        error("`upper' that you provided is non-list and non-numeric!");
+    }
+     
     if (!isFunction(fn)) error("fn is not a function!");
     PROTECT(OS->fcall = lang2(fn, OS->par));
 
@@ -136,13 +159,13 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
       	else 
 	  error("Non-finite (or null) value for a parameter specified!");
     }
-
+   
     OS->niter = 0;
 
 /*========================================================================*/
 
     if (isNull(jac)) {
-        F77_CALL(lmdif)(&fcn_lmdif, &m, &n, par, fvec,
+      F77_CALL(lmdif)(&fcn_lmdif, &m, &n, par, fvec,
                         &OS->ftol, &OS->ptol, &OS->gtol,
                         &maxfev, &OS->epsfcn, OS->diag, &mode,
                         &OS->factor, &npr, &info, &nfev, fjac, &ldfjac,
@@ -150,8 +173,8 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
         strcpy(lmfun_name, "lmdif");
     }
     else {
-        if (!isFunction(jac))
-            error("jac is not a function!");
+      if (!isFunction(jac))
+	  error("jac is not a function!");
         PROTECT(OS->jcall = lang2(jac, OS->par));
         PROTECT(eval_test = eval(OS->jcall, OS->env));
         if (!IS_NUMERIC(eval_test))
@@ -245,7 +268,7 @@ SEXP nls_lm(SEXP par_arg, SEXP fn, SEXP jac, SEXP control, SEXP rho)
         
     SET_NAMES(out, out_names);
 
-    UNPROTECT(11);
+    UNPROTECT(13);
 
     return out;
 }

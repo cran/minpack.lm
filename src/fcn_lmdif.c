@@ -3,8 +3,7 @@
 #include "minpack_lm.h"
 
 
-void fcn_lmdif(int *m, int *n, double *par, double *fvec, 
-	       int *iflag)
+void fcn_lmdif(int *m, int *n, double *par, double *fvec, int *iflag)
 {
     int i;
     double sumf;
@@ -13,10 +12,18 @@ void fcn_lmdif(int *m, int *n, double *par, double *fvec,
     /* Rprintf("fcn-lmdif calling...\n"); */
     if (IS_NUMERIC(OS->par))
       for (i = 0; i < *n; i++) {
+	if(par[i] < NUMERIC_POINTER(OS->lower)[i])
+	  par[i] = NUMERIC_POINTER(OS->lower)[i];
+	if(par[i] > NUMERIC_POINTER(OS->upper)[i])
+	  par[i] = NUMERIC_POINTER(OS->upper)[i];
 	NUMERIC_POINTER(OS->par)[i] = par[i];
-        }
+      }
     else
       for (i = 0; i < *n; i++) {
+	if(par[i] < NUMERIC_POINTER(OS->lower)[i])
+	  par[i] = NUMERIC_POINTER(OS->lower)[i];
+	if(par[i] > NUMERIC_POINTER(OS->upper)[i])
+	  par[i] = NUMERIC_POINTER(OS->upper)[i];
 	NUMERIC_POINTER(VECTOR_ELT(OS->par, i))[0] = par[i];
       }
     if(*iflag == 0){ 

@@ -9,11 +9,18 @@
   function \code{jac} which calculates the Jacobian.
 }
 \usage{
-nls.lm(par, fn, jac = NULL, control = nls.lm.control(), \dots)
+nls.lm(par, lower=NULL, upper=NULL, fn, jac = NULL,
+       control = nls.lm.control(), \dots)
 }
 \arguments{
  \item{par}{A list or numeric vector of starting estimates. If
    \code{par} is a list, then each element must be of length 1. }
+ \item{lower}{A numeric vector of lower bounds on each parameter. If
+   not given, the default lower bound for each parameter is set to
+   \code{-Inf}. }
+ \item{upper}{A numeric vector of upper bounds on each parameter. If
+   not given, the default upper bound for each parameter is set to
+   \code{Inf}. }
  \item{fn}{A function that returns a vector of residuals, the sum square
    of which is to be minimized.  The first argument of \code{fn} must be
    \code{par}. }

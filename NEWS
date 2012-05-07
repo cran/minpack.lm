@@ -1,0 +1,4 @@
+Version 1.1-6
+	o Support for lower and upper bounds added
+	o Added ‘nlsLM’, a modified version of ‘nls’ that uses ‘nls.lm’ for
+          fitting.

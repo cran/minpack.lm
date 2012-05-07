@@ -13,10 +13,18 @@ void fcn_lmder(int *m, int *n, double *par, double *fvec, double *fjac,
   /* Rprintf("fcn-lmder calling...\n"); */
   if (IS_NUMERIC(OS->par))
     for (i = 0; i < *n; i++) {
+      if(par[i] < NUMERIC_POINTER(OS->lower)[i])
+	par[i] = NUMERIC_POINTER(OS->lower)[i];
+      if(par[i] > NUMERIC_POINTER(OS->upper)[i])
+	par[i] = NUMERIC_POINTER(OS->upper)[i];
       NUMERIC_POINTER(OS->par)[i] = par[i];
     }
   else
     for (i = 0; i < *n; i++) {
+      if(par[i] < NUMERIC_POINTER(OS->lower)[i])
+	par[i] = NUMERIC_POINTER(OS->lower)[i];
+      if(par[i] > NUMERIC_POINTER(OS->upper)[i])
+	par[i] = NUMERIC_POINTER(OS->upper)[i];
       NUMERIC_POINTER(VECTOR_ELT(OS->par, i))[0] = par[i];
     }
   

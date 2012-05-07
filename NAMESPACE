@@ -1,5 +1,5 @@
 useDynLib(minpack.lm)
-export(nls.lm, nls.lm.control)
+export(nls.lm, nls.lm.control, nlsLM)
 
 S3method("print", "nls.lm")
 S3method("residuals", "nls.lm")
