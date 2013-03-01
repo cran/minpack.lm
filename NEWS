@@ -1,3 +1,8 @@
+Version 1.1-7 
+	o changed the License to GPL-3 + the terms specified in the file 
+          LICENSE, which give the original copyright distributed with  
+          the minpack Fortran source.  This is possible given Clause 7 in 
+	  GPL-3.  
 Version 1.1-6
 	o Support for lower and upper bounds added
 	o Added ‘nlsLM’, a modified version of ‘nls’ that uses ‘nls.lm’ for
