@@ -1,3 +1,6 @@
+Version 1.1-8
+	o The new function wfct for easy specification of weights in nls and
+	  nlsLM is now included.  
 Version 1.1-7 
 	o changed the License to GPL-3 + the terms specified in the file 
           LICENSE, which give the original copyright distributed with  

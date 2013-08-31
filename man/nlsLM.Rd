@@ -31,14 +31,22 @@ nlsLM(formula, data = parent.frame(), start, jac = NULL,
   \item{upper}{A numeric vector of upper bounds on each parameter. If not given, the default upper bound for each parameter is set to \code{Inf}.}
   \item{trace}{logical value indicating if a trace of the iteration progress should be printed. Default is \code{FALSE}. If \code{TRUE}, the residual (weighted) sum-of-squares and the parameter values are printed at the conclusion of each iteration.}
   \item{subset}{an optional vector specifying a subset of observations to be used in the fitting process.}
-  \item{weights}{an optional numeric vector of (fixed) weights.  When present, the objective function is weighted least squares.}
+  \item{weights}{an optional numeric vector of (fixed) weights.  When
+   present, the objective function is weighted least squares.  See the
+   \code{wfct} function for options for easy specification of weighting
+   schemes. }
   \item{na.action}{a function which indicates what should happen when the data contain \code{NA}s. The default is set by the \code{na.action} setting of \code{\link{options}}, and is \code{\link{na.fail}} if that is unset. The \sQuote{factory-fresh} default is \code{\link{na.omit}}. Value \code{\link{na.exclude}} can be useful.}
   \item{model}{logical. If true, the model frame is returned as part of the object. Default is \code{FALSE}.}
   \item{\dots}{Additional optional arguments. None are used at present.}
 }
 
 \details{
-The standard \code{\link{nls}} function was modified in several ways to incorporate the Levenberg-Marquardt type \code{\link{nls.lm}} fitting algorithm. The \code{formula} is transformed into a function that returns a vector of (weighted) residuals whose sum square is minimized by \code{\link{nls.lm}}. The optimized parameters are then transferred to \code{stats:::nlsModel} in order to obtain an object of class 'nlsModel'. The internal C function \code{C_nls_iter} and \code{stats:::nls_port_fit} were removed to avoid subsequent "Gauss-Newton", "port" or "plinear"" types of optimization of \code{nlsModel}. Several other small modifications were made in order to make all generic functions work on the output.
+The standard \code{\link{nls}} function was modified in several ways to
+incorporate the Levenberg-Marquardt type \code{\link{nls.lm}} fitting
+algorithm. The \code{formula} is transformed into a function that
+returns a vector of (weighted) residuals whose sum square is minimized
+by \code{\link{nls.lm}}. The optimized parameters are then transferred
+to  \code{nlsModel} in order to obtain an object of class 'nlsModel'. The internal C function \code{C_nls_iter} and \code{nls_port_fit} were removed to avoid subsequent "Gauss-Newton", "port" or "plinear" types of optimization of \code{nlsModel}. Several other small modifications were made in order to make all generic functions work on the output.
 }
 
 \value{
