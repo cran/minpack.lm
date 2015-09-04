@@ -182,7 +182,7 @@ nls.lm(par, lower=NULL, upper=NULL, fn, jac = NULL,
 \note{
   The public domain FORTRAN sources of MINPACK package by J.J. Moré,
   implementing the Levenberg-Marquardt algorithm were downloaded from
-  \url{http://ftp.netlib.org/minpack}, and left unchanged. 
+  \url{http://netlib.org/minpack/}, and left unchanged. 
   The contents of this manual page are largely extracted from
   the comments of MINPACK sources.
 }

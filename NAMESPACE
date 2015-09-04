@@ -8,5 +8,8 @@ S3method("summary", "nls.lm")
 S3method("vcov", "nls.lm")
 S3method("df.residual", "nls.lm")
 S3method("print", "summary.nls.lm")
-
+importFrom("stats", "as.formula", "coef", "deviance", "getInitial",
+             "model.weights", "na.omit", "nls.control", "numericDeriv",
+             "printCoefmat", "pt", "qt", "resid", "residuals",
+             "setNames", "var", "vcov")
 

@@ -1,3 +1,5 @@
+Version 1.1-9
+	o Modified NAMESPACE and added Suggests: MASS to DESCRIPTION file.
 Version 1.1-8
 	o The new function wfct for easy specification of weights in nls and
 	  nlsLM is now included.  
