@@ -41,12 +41,8 @@ nlsLM(formula, data = parent.frame(), start, jac = NULL,
 }
 
 \details{
-The standard \code{\link{nls}} function was modified in several ways to
-incorporate the Levenberg-Marquardt type \code{\link{nls.lm}} fitting
-algorithm. The \code{formula} is transformed into a function that
-returns a vector of (weighted) residuals whose sum square is minimized
-by \code{\link{nls.lm}}. The optimized parameters are then transferred
-to  \code{nlsModel} in order to obtain an object of class 'nlsModel'. The internal C function \code{C_nls_iter} and \code{nls_port_fit} were removed to avoid subsequent "Gauss-Newton", "port" or "plinear" types of optimization of \code{nlsModel}. Several other small modifications were made in order to make all generic functions work on the output.
+The standard \code{\link{nls}} function was modified in several ways to incorporate the Levenberg-Marquardt type \code{\link{nls.lm}} fitting algorithm. The \code{formula} is transformed into a function that returns a vector of (weighted) residuals whose sum square is minimized by \code{\link{nls.lm}}. The optimized parameters are then transferred
+to \code{nlsModel} in order to obtain an object of class 'nlsModel'. The internal C function \code{C_nls_iter} and \code{nls_port_fit} were removed to avoid subsequent "Gauss-Newton", "port" or "plinear" types of optimization of \code{nlsModel}. Several other small modifications were made in order to make all generic functions work on the output.
 }
 
 \value{
@@ -70,7 +66,7 @@ Bates, D. M. and Chambers, J. M. (1992)
 \emph{Nonlinear models.}
 Chapter 10 of \emph{Statistical Models in S} eds J. M. Chambers and T. J. Hastie, Wadsworth & Brooks/Cole.
 
-J.J. MorÃ©, "The Levenberg-Marquardt algorithm: implementation and theory," 
+J.J. More, "The Levenberg-Marquardt algorithm: implementation and theory," 
 in \emph{Lecture Notes in Mathematics}
 \bold{630}: Numerical Analysis, G.A. Watson (Ed.), Springer-Verlag: Berlin, 1978, pp. 105-116.
 }

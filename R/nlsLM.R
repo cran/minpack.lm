@@ -16,14 +16,11 @@ nlsModel <- function (form, data, start, wts, upper = NULL)
         get, envir = env), names(ind)))
     getPars <- getPars.noVarying
     internalPars <- getPars()
-    if (!is.null(upper)) 
-        upper <- rep_len(upper, parLength)
+    if (!is.null(upper)) upper <- rep_len(upper, parLength)
     useParams <- rep(TRUE, parLength)
     lhs <- eval(form[[2L]], envir = env)
     rhs <- eval(form[[3L]], envir = env)
-    .swts <- if (!missing(wts) && length(wts)) 
-        sqrt(wts)
-    else rep_len(1, length(rhs))
+    .swts <- if (!missing(wts) && length(wts)) sqrt(wts) else rep_len(1, length(rhs))
     assign(".swts", .swts, envir = env)
     resid <- .swts * (lhs - rhs)
     dev <- sum(resid^2)
@@ -69,8 +66,8 @@ nlsModel <- function (form, data, start, wts, upper = NULL)
     }
     QR <- qr(.swts * attr(rhs, "gradient"))
     qrDim <- min(dim(QR$qr))
-    if (QR$rank < qrDim) 
-        stop("singular gradient matrix at initial parameter estimates")
+    if (QR$rank < qrDim) stop("singular gradient matrix at initial parameter estimates")
+    
     getPars.varying <- function() unlist(setNames(lapply(names(ind), 
         get, envir = env), names(ind)))[useParams]
     setPars.noVarying <- function(newPars) {
@@ -236,7 +233,7 @@ nlsLM <- function (formula, data = parent.frame(), start, jac = NULL,
   
   FCT <- function(par) {    
     mf[m] <- par
-    rhs <- eval(formula[[3L]], envir = mf)
+    rhs <- eval(formula[[3L]], envir = mf, environment(formula))
     res <- lhs - rhs
     res <- .swts * res    
     res
