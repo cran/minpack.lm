@@ -241,10 +241,10 @@ nlsLM <- function (formula, data = parent.frame(), start, jac = NULL,
   
   NLS <- nls.lm(par = start, fn = FCT, jac = jac, control = control, lower = lower, upper = upper, ...)
   ## previous versions before boundaries were included
-  # NLS <- nls.lm(par = start, fn = FCT, jac = jac, control = control, ...)
+  ## NLS <- nls.lm(par = start, fn = FCT, jac = jac, control = control, ...)
   start <- NLS$par
         
-  ##pass optimized parameters to 'nlsModel'
+  ## pass optimized parameters to 'nlsModel'
   m <- nlsModel(formula, mf, start, wts)
     
   ## => internal 'nls' iterations by 'C_nls_iter' switched off
@@ -260,6 +260,9 @@ nlsLM <- function (formula, data = parent.frame(), start, jac = NULL,
   ## need to use '$tol' parameter from nls.control to make 'predict.nls' work
   nls.out$call$control <- nls.control()
   nls.out$call$trace <- FALSE
+  ## lower/upper changed in version 1.2-1
+  nls.out$call$lower <- lower
+  nls.out$call$upper <- upper
   nls.out$na.action <- attr(mf, "na.action")
   nls.out$dataClasses <- attr(attr(mf, "terms"), "dataClasses")[varNamesRHS]
   if (model) 
