@@ -1,3 +1,9 @@
+Version 1.2-2
+  o Credit base R for functions in src/prod.c in DESCRIPTION, via
+    Copyrights field, which refers to new file inst/COPYRIGHTS
+  o Add FCONE arguments in calls to F77_CALL in prod.c 
+  o Used package_native_route_registration_skeleton from package tools
+    to add code in new file src/init.c
 Version 1.2-1
   o In some cases 'profile.nls' would not work on models created with 'nlsLM', due to a wrong class assignment in the output ("call" instead of "numeric"). This bug was kindly made aware by Patrice Kiener and removed.
   o License is now only GPL-3; per clause 7 we include the University of
