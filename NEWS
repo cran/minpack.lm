@@ -1,3 +1,6 @@
+Version 1.2-3
+  o use snprintf instead of sprintf
+  o http --> https in manual
 Version 1.2-2
   o Credit base R for functions in src/prod.c in DESCRIPTION, via
     Copyrights field, which refers to new file inst/COPYRIGHTS

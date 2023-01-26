@@ -1,14 +1,14 @@
-217dfa1aab15ea8f2a935ee52c8dc792 *DESCRIPTION
+401d983b923904b9cb987209eb1e1be1 *DESCRIPTION
 3677943af2b5ea8bf902576c7e2d9749 *INDEX
 5fe4603e80ef7390306f51ef74449bbd *LICENSE.note
 30c62ba66108dc517d49bd7e00a67fca *NAMESPACE
-fc95f92115041e94aaabbbdeb5ecaeac *NEWS
+e3ed3b1569941bbc7508aa7198a34b0c *NEWS
 265ff6dbf621ad27f6b6a0aa3a764aaa *R/nls.lm.R
 4cb406cb55d72e9936d3fd34e70fe392 *R/nlsLM.R
 3dbf4ac36ed7d60d91945b849218b402 *R/wfct.R
 4a6a3e370ef553a6572e95939efed59d *THANKS
 465bedaf75dddaee0b9cd633314705f4 *inst/COPYRIGHTS
-cd1248eeaf577b58ca88d49220f42256 *man/nls.lm.Rd
+87049f97ac5d5b2d58e329d8be84ccb4 *man/nls.lm.Rd
 aeb92193f7c054a0f1e209583f329d04 *man/nls.lm.control.Rd
 21d97cdad27d47c66c947a2019fde2a6 *man/nlsLM.Rd
 4a2664f64117659a022ac8c953b764f3 *man/wfct.Rd
@@ -19,7 +19,7 @@ aeb92193f7c054a0f1e209583f329d04 *man/nls.lm.control.Rd
 a63a84008c57c577e03b7d892b964bd5 *src/enorm.f
 2044df416d6ff7f47cbaeaf4eff1ab0c *src/fcn_lmder.c
 e45ad6ae5d49544a957771619c23b3ff *src/fcn_lmdif.c
-475d6c4428b6ffb8aca76a39c725583e *src/fcn_message.c
+c5ddd26cff5d56dd3e5b8dbd5872ef62 *src/fcn_message.c
 748ae7494ea2ef9d5e30b0324386204f *src/fdjac2.f
 5a9d8a815eb087d5d78fadbb259562ff *src/get_element.c
 6b993234af2eef9c35c914e52d8236c4 *src/init.c
