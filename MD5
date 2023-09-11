@@ -1,8 +1,8 @@
-401d983b923904b9cb987209eb1e1be1 *DESCRIPTION
+a7cabc52e97198456e02dcfb7c73ec1b *DESCRIPTION
 3677943af2b5ea8bf902576c7e2d9749 *INDEX
 5fe4603e80ef7390306f51ef74449bbd *LICENSE.note
 30c62ba66108dc517d49bd7e00a67fca *NAMESPACE
-e3ed3b1569941bbc7508aa7198a34b0c *NEWS
+0f7ce1f951f03bc85e2ccb2a911d418a *NEWS
 265ff6dbf621ad27f6b6a0aa3a764aaa *R/nls.lm.R
 4cb406cb55d72e9936d3fd34e70fe392 *R/nlsLM.R
 3dbf4ac36ed7d60d91945b849218b402 *R/wfct.R
@@ -28,7 +28,7 @@ c85d3371f3d1da5087d23a10a8b96759 *src/lmder.f
 8ed1e10412c27be1f2490ba0f37a1f7b *src/lmpar.f
 e056dbe99f9f59baf8a7473e638d2b62 *src/minpack_lm.h
 987ccfc990378cd92b844135deddb950 *src/nls_lm.c
-b16f9b11d0fe9df4ebce6a12a28c6a69 *src/prod.c
+566a36c2f50f72b39c66162c8e30dce2 *src/prod.c
 85e35e9406aaf057cec7003b9c10747b *src/qform.f
 fc1df4af782730f0fa5110dec34d4e6b *src/qrfac.f
 a74ea0548499e332f79b0226c6ae83b8 *src/qrsolv.f

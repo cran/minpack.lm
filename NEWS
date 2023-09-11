@@ -1,3 +1,5 @@
+Version 1.2-4
+  o include R_ext/BLAS.h instead of R_ext/Applic.h in prod.c
 Version 1.2-3
   o use snprintf instead of sprintf
   o http --> https in manual

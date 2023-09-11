@@ -23,7 +23,8 @@
  * from R-2.0.1 sources */
 
 #include <R.h>
-#include <R_ext/Applic.h>  /* for dgemm */
+#include <R_ext/BLAS.h>
+//#include <R_ext/Applic.h>  /* for dgemm */
 
 void matprod(double *x, int nrx, int ncx,
              double *y, int nry, int ncy, double *z)
